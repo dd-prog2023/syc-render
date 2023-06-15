@@ -14,6 +14,8 @@ const TextBubbleSkin = require('./TextBubbleSkin');
 const EffectTransform = require('./EffectTransform');
 const log = require('./util/log');
 
+const CoordinateSkin = require('./CoordinateSkin');
+
 const __isTouchingDrawablesPoint = twgl.v3.create();
 const __candidatesBounds = new Rectangle();
 const __fenceBounds = new Rectangle();
@@ -390,6 +392,60 @@ class RenderWebGL extends EventEmitter {
         newSkin.setTextBubble(type, text, pointsLeft);
         this._allSkins[skinId] = newSkin;
         return skinId;
+    }
+
+    /**
+     * @returns {!int} the ID for the new skin.
+     */
+     createCoordinateSkin () {
+        const skinId = this._nextSkinId++;
+        const newSkin = new CoordinateSkin(skinId, this);
+        this._allSkins[skinId] = newSkin;
+        return skinId;
+    }
+
+    /**
+     * @param {number} checkerSkinId
+     * @param {number} fontSize
+     */
+    updateCoordinateSkinFontSize (checkerSkinId, fontSize) {
+        const skin = this._allSkins[checkerSkinId];
+
+        if (skin instanceof CoordinateSkin) {
+            const newSkin = new CoordinateSkin(checkerSkinId, this);
+
+            newSkin.fontSize = fontSize;
+
+            this._reskin(checkerSkinId, newSkin);
+        }
+    }
+
+    /**
+     * @param {number} coordinateDrawableId
+     * @param {boolean} visible
+     */
+    setCoordinateVisible (coordinateDrawableId, visible) {
+        const coordinate = this._allDrawables[coordinateDrawableId];
+
+        if (!coordinate) {
+            return;
+        }
+
+        coordinate.updateVisible(visible);
+    }
+
+    /**
+     * @param {number} coordinateDrawableId
+     * @returns {boolean}
+     */
+    getCoordinateVisible (coordinateDrawableId) {
+        const coordinate = this._allDrawables[coordinateDrawableId];
+
+        if (!coordinate) {
+            return null;
+        }
+
+        return coordinate.getVisible();
     }
 
     /**
