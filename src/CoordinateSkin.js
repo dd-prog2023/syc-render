@@ -73,6 +73,7 @@ class CoordinateSkin extends Skin {
         // x/y 轴，坐标点的字体大小
         this._fontSize = 10;
 
+        this.factor = 0.92;
         // 抄 src/PenSkin.js 的实现，用来设置画布的大小（按理应该是该皮肤纹理的大小）
         /* 2022-06-14 补充：多尺寸变换时，如果还是保留原本的网格 skin 对象会有问题，现在采用的方法是在 vm 项目 src/engine/runtime.js 的 setStageNativeSize 函数，在修改舞台尺寸时
         销毁掉之前的网格并重新创建一个网格对象 */
@@ -150,8 +151,8 @@ class CoordinateSkin extends Skin {
       */
      _drawLine (x0, y0, x1, y1) {
         this.ctx.beginPath();
-        this.ctx.moveTo(this._rotationCenter[0] + x0, this._rotationCenter[1] + y0);
-        this.ctx.lineTo(this._rotationCenter[0] + x1, this._rotationCenter[1] + y1);
+        this.ctx.moveTo(this._rotationCenter[0] + x0 * this.factor, this._rotationCenter[1] + y0 * this.factor);
+        this.ctx.lineTo(this._rotationCenter[0] + x1 * this.factor, this._rotationCenter[1] + y1 * this.factor);
         this.ctx.stroke();
     }
 
@@ -163,14 +164,16 @@ class CoordinateSkin extends Skin {
      */
     _drawText (text, x, y) {
         this.ctx.fillStyle = 'black';
-        var posx = this._rotationCenter[0] + x;
-        var posy = this._rotationCenter[1] + y;
+        var posx = this._rotationCenter[0] + x * this.factor;
+        var posy = this._rotationCenter[1] + y * this.factor;
+        this.ctx.imageSmoothingEnabled = true;
+
         this.ctx.fillText(text, posx, posy);
     }
 
     _drawCircle(x, y){
         this.ctx.beginPath();
-        this.ctx.arc(this._rotationCenter[0] + x, this._rotationCenter[1] + y, 2, 0, 2 * Math.PI, true);
+        this.ctx.arc(this._rotationCenter[0] + x * this.factor, this._rotationCenter[1] + y * this.factor, 2, 0, 2 * Math.PI, true);
         this.ctx.fillStyle = 'red';
         this.ctx.fill();
       }
@@ -241,7 +244,7 @@ class CoordinateSkin extends Skin {
             attributes: {
                 axis: {
                     strokeStyle: axisAttributes.strokeStyle,
-                    lineWidth: axisAttributes.lineWidth * 2,
+                    lineWidth: Math.round(axisAttributes.lineWidth * 2),
                 },
                 point: pointAttributes,
             },
@@ -312,7 +315,7 @@ class CoordinateSkin extends Skin {
             attributes: {
                 axis: {
                     strokeStyle: axisAttributes.strokeStyle,
-                    lineWidth: isNeedCoordPoint ? axisAttributes.lineWidth : axisAttributes.lineWidth * 0.7,
+                    lineWidth: isNeedCoordPoint ? Math.round(axisAttributes.lineWidth) : Math.round(axisAttributes.lineWidth * 0.7),
                 },
                 point: pointAttributes,
             },
@@ -321,6 +324,9 @@ class CoordinateSkin extends Skin {
 
     _render (scale) {
         this.ctx = this._canvas.getContext('2d');
+
+        const dpr = window.devicePixelRatio;
+        this.ctx.scale(dpr, dpr);
 
         // this._canvas.width = Math.ceil(this._size[0] * scale);
         // this._canvas.height = Math.ceil(this._size[1] * scale);
